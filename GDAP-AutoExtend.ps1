@@ -13,7 +13,7 @@ while ($i -ine $GDAPrelationshipsCount) {
 	$displayName = $GDAPrelationship.DisplayName
 	$durationDays = "P{0}D" -f $gdaprelationship.Duration.Days
 
-	if ($GDAPrelationship.Status -eq "active") {
+	if ($GDAPrelationship.Status -eq "active" -and $GDAPrelationship.AutoExtendDuration.Days -eq "0") {
 		
 		$params = @{
 			displayName = "$displayName"
