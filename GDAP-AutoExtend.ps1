@@ -1,3 +1,16 @@
+#Mit diesem Skript kann bei allen aktuellen GDAP-Beziehungen der Schalter "auto extend" aktiviert werden.
+#Je nach Anzahl der Kundenbeziehungen kann das Skript etwas Zeit in Anspruch nehmen, ~ 4 Sekunden pro Beziehung.
+#Die App-Registirerungsanfrage für Microsoft Graph muss bei der Anmeldung mit einem Admin-Account akzeptiert werden.
+
+$moduleName = Microsoft.Graph.Identity.Partner
+if ($moduleName -and -not (Get-Module -ListAvailable -Name $moduleName)) {
+    Write-Host "Das Modul $moduleName ist nicht installiert. Installation wird durchgeführt..."
+    Install-Module -Name $moduleName -Scope CurrentUser -Force
+} 
+else ($moduleName) {
+    Write-Host "Das Modul $moduleName ist bereits installiert."
+} 
+
 $scopes = @("User.Read.All", "Directory.Read.All", "DelegatedAdminRelationship.ReadWrite.All")
 Connect-MGGraph -Scopes $scopes
 
