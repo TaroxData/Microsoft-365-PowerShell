@@ -4,12 +4,17 @@
 
 $moduleName = "Microsoft.Graph.Identity.Partner"
 if ($moduleName -and -not (Get-Module -ListAvailable -Name $moduleName)) {
+	$currentPrincipal = $(New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+	if ($currentPrincipal -eq $False){
+		Write-Host "Bitte starten Sie die PowerShell als Administrator neu, um das notwendige PS-Modul zu installieren."
+		exit 1
+	}
     Write-Host "Das Modul $moduleName ist nicht installiert. Installation wird durchgeführt..."
     Install-Module -Name $moduleName -Scope CurrentUser -Force
 } 
 else {
     Write-Host "Das Modul $moduleName ist bereits installiert."
-}
+} 
 
 $scopes = @("User.Read.All", "Directory.Read.All", "DelegatedAdminRelationship.ReadWrite.All")
 Connect-MGGraph -Scopes $scopes
