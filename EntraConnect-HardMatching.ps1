@@ -1,15 +1,25 @@
-Import-Module ActiveDirectory
-Connect-AzureAD
+# Falls das Modul noch nicht installiert ist
+Set-Executionpolicy bypass
+Install-Module Microsoft.Graph -Scope CurrentUser
 
-$ou = "OU=Beispiel,DC=domain,DC=com"
-$users = Get-ADUser -Filter * -SearchBase $ou -Properties UserPrincipalName
+# Verbindung zu Microsoft Graph
+Connect-MgGraph -Scopes "User.ReadWrite.All"
 
-foreach ($user in $users) {
-    $UPN = $user.UserPrincipalName
-    $Name = $user.Name
-    $ImmutableID = [System.Convert]::ToBase64String($user.ObjectGUID.ToByteArray())
-    $ObjectID = (Get-AzureADUser -SearchString $Name).ObjectId
-    Set-AzureADUser -ObjectId $ObjectID -ImmutableId $ImmutableID
-    Write-Host "Immutable ID von $Name wurde in Entra gesetzt."
+$UPN = "Max.Mustermann@Musterfirma.de"
+
+# AD-Benutzer anhand der UPN holen
+$ADUser = Get-ADUser -Filter "UserPrincipalName -eq '$UPN'" -Properties ObjectGUID
+
+if (-not $ADUser) {
+    Write-Error "Kein AD-Benutzer mit der UPN '$UPN' gefunden."
+    return
 }
-Start-ADSyncSyncCycle -PolicyType Delta
+
+# ImmutableID aus dem ObjectGUID bilden
+$ImmutableID = [System.Convert]::ToBase64String($ADUser.ObjectGUID.ToByteArray())
+
+# On-Premises Immutable ID im Cloud-Benutzer setzen
+Update-MgUser -UserId $UPN -OnPremisesImmutableId $ImmutableID
+
+# Kontrolle
+Get-MgUser -UserId $UPN -Property UserPrincipalName,OnPremisesImmutableId | Select-Object UserPrincipalName, OnPremisesImmutableId
